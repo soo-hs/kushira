@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>串良商業高等学校 進学状況 年度別集計（R4〜R7）</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --navy:#0f2a4a;
+    --navy-2:#173c66;
+    --gold:#c9a227;
+    --gold-light:#f4e6b8;
+    --bg:#f5f6f8;
+    --card:#ffffff;
+    --text:#22303f;
+    --muted:#5c6b7a;
+    --border:#e1e5ea;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.7;
+  }
+  header{
+    background:linear-gradient(135deg,var(--navy) 0%,var(--navy-2) 100%);
+    color:#fff;
+    padding:40px 24px 32px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  header::after{
+    content:"";
+    position:absolute;
+    bottom:0;left:0;right:0;
+    height:5px;
+    background:linear-gradient(90deg,var(--gold),#e8cf7a,var(--gold));
+  }
+  header h1{
+    margin:0 0 8px;
+    font-size:1.7rem;
+    letter-spacing:.04em;
+  }
+  header p{
+    margin:0;
+    color:var(--gold-light);
+    font-size:.95rem;
+    letter-spacing:.03em;
+  }
+  main{
+    max-width:1080px;
+    margin:0 auto;
+    padding:28px 20px 60px;
+  }
+  .notice{
+    background:#fff8e6;
+    border:1px solid var(--gold);
+    border-left:5px solid var(--gold);
+    border-radius:8px;
+    padding:14px 18px;
+    margin:0 0 28px;
+    font-size:.88rem;
+    color:#5a4a10;
+  }
+  .notice strong{color:#8a6d00;}
+  section{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:24px 24px 28px;
+    margin-bottom:24px;
+    box-shadow:0 1px 3px rgba(15,42,74,.06);
+  }
+  h2{
+    font-size:1.15rem;
+    margin:0 0 4px;
+    color:var(--navy);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  h2::before{
+    content:"";
+    width:6px;height:22px;
+    background:var(--gold);
+    border-radius:3px;
+    display:inline-block;
+  }
+  .section-desc{
+    color:var(--muted);
+    font-size:.85rem;
+    margin:0 0 18px;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:.86rem;
+  }
+  caption{
+    caption-side:top;
+    text-align:left;
+    font-weight:bold;
+    color:var(--navy-2);
+    margin-bottom:8px;
+    font-size:.9rem;
+  }
+  th,td{
+    padding:9px 10px;
+    text-align:center;
+    border:1px solid var(--border);
+  }
+  thead th{
+    background:var(--navy);
+    color:#fff;
+    font-weight:600;
+    white-space:nowrap;
+  }
+  tbody tr:nth-child(even){background:#f8fafc;}
+  tbody th{
+    background:#eef2f6;
+    color:var(--navy-2);
+    font-weight:600;
+  }
+  td.total-col,th.total-col{
+    background:var(--gold-light);
+    font-weight:700;
+    color:#5a4a10;
+  }
+  .r6-col{background:#fdf0f0 !important;}
+  .table-scroll{overflow-x:auto;}
+  .chart-wrap{
+    position:relative;
+    height:340px;
+    margin-top:8px;
+  }
+  .chart-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:24px;
+  }
+  @media (max-width:760px){
+    .chart-grid{grid-template-columns:1fr;}
+  }
+  .legend-note{
+    font-size:.78rem;
+    color:var(--muted);
+    margin-top:10px;
+  }
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:.78rem;
+    padding:20px;
+  }
+  .kpi-row{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin-bottom:22px;
+  }
+  @media (max-width:700px){.kpi-row{grid-template-columns:repeat(2,1fr);}}
+  .kpi{
+    background:#f8fafc;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px 12px;
+    text-align:center;
+  }
+  .kpi .year{
+    font-size:.78rem;
+    color:var(--muted);
+    font-weight:600;
+  }
+  .kpi .val{
+    font-size:1.5rem;
+    font-weight:700;
+    color:var(--navy);
+    margin:2px 0;
+  }
+  .kpi .sub{
+    font-size:.72rem;
+    color:var(--muted);
+  }
+  .kpi.dim{opacity:.85;background:#fdf5f5;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>串良商業高等学校　進学状況　年度別集計</h1>
+  <p>令和4年度 〜 令和7年度（R4〜R7）</p>
+</header>
+
+<main>
+
+  <div class="notice">
+    <strong>データ時点についての注意：</strong>
+    R4・R5・R7は年度末（進路決定後）の確定データです。<strong>R6のみ令和6年10月15日時点の「進学希望・就職内定状況」（中間集計）</strong>であり、
+    その後の進路決定により最終的な人数・進学率は変動します。年度間の比較の際はこの点にご留意ください。
+  </div>
+
+  <section>
+    <h2>進学者数サマリー</h2>
+    <p class="section-desc">年度末（R6は10月時点）における進学者数・進学率の推移</p>
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="year">R4（令和4年度）</div>
+        <div class="val">34人</div>
+        <div class="sub">進学率 57.6%（計59人中）</div>
+      </div>
+      <div class="kpi">
+        <div class="year">R5（令和5年度）</div>
+        <div class="val">22人</div>
+        <div class="sub">進学率 40.7%（計54人中）</div>
+      </div>
+      <div class="kpi dim">
+        <div class="year">R6（10/15時点・暫定）</div>
+        <div class="val">17人</div>
+        <div class="sub">進学希望 / 判明分計34人</div>
+      </div>
+      <div class="kpi">
+        <div class="year">R7（令和7年度）</div>
+        <div class="val">25人</div>
+        <div class="sub">進学率 36.8%（計68人中）</div>
+      </div>
+    </div>
+
+    <div class="table-scroll">
+    <table>
+      <caption>進学者数　進学先区分別（年度別）</caption>
+      <thead>
+        <tr>
+          <th>区分</th>
+          <th>R4</th>
+          <th>R5</th>
+          <th class="r6-col">R6（暫定）</th>
+          <th>R7</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><th>国公立大学</th><td>0</td><td>2</td><td class="r6-col">2</td><td>1</td></tr>
+        <tr><th>私立大学</th><td>3</td><td>3</td><td class="r6-col">3</td><td>4</td></tr>
+        <tr><th>公立短大</th><td>0</td><td>1</td><td class="r6-col">0</td><td>0</td></tr>
+        <tr><th>私立短大</th><td>7</td><td>2</td><td class="r6-col">3</td><td>3</td></tr>
+        <tr><th>専門学校</th><td>23</td><td>13</td><td class="r6-col">9</td><td>17</td></tr>
+        <tr><th>その他（各種学校・未定）</th><td>1</td><td>1</td><td class="r6-col">0</td><td>0</td></tr>
+        <tr><th class="total-col">進学計</th><td class="total-col">34</td><td class="total-col">22</td><td class="total-col r6-col">17</td><td class="total-col">25</td></tr>
+        <tr><th>就職計</th><td>25</td><td>32</td><td class="r6-col">17</td><td>43</td></tr>
+        <tr><th class="total-col">卒業（判明）計</th><td class="total-col">59</td><td class="total-col">54</td><td class="total-col r6-col">34</td><td class="total-col">68</td></tr>
+        <tr><th>進学率</th><td>57.6%</td><td>40.7%</td><td class="r6-col">50.0%*</td><td>36.8%</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="legend-note">*R6の進学率は10月時点の判明分のみで算出した参考値。就職内定状況には「結果待ち」4人を含むため、年度末には数値が変動する。</p>
+  </section>
+
+  <section>
+    <h2>進学者数の推移</h2>
+    <p class="section-desc">進学先区分別の内訳（積み上げ）</p>
+    <div class="chart-wrap"><canvas id="stackChart"></canvas></div>
+  </section>
+
+  <div class="chart-grid">
+    <section>
+      <h2>進学率の推移</h2>
+      <p class="section-desc">卒業者に占める進学者の割合</p>
+      <div class="chart-wrap"><canvas id="rateChart"></canvas></div>
+    </section>
+
+    <section>
+      <h2>男女別 進学者数</h2>
+      <p class="section-desc">年度別・男女別の進学者数</p>
+      <div class="chart-wrap"><canvas id="genderChart"></canvas></div>
+    </section>
+  </div>
+
+  <section>
+    <h2>男女別　進学先区分（年度別詳細）</h2>
+    <div class="table-scroll">
+    <table>
+      <caption>男女別内訳</caption>
+      <thead>
+        <tr>
+          <th>年度</th><th>性別</th><th>国公立大</th><th>私立大</th><th>公立短大</th><th>私立短大</th><th>専門学校</th><th>その他</th><th class="total-col">計</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><th rowspan="2">R4</th><th>男</th><td>0</td><td>1</td><td>0</td><td>0</td><td>7</td><td>1</td><td class="total-col">9</td></tr>
+        <tr><th>女</th><td>0</td><td>2</td><td>0</td><td>7</td><td>16</td><td>0</td><td class="total-col">25</td></tr>
+        <tr><th rowspan="2">R5</th><th>男</th><td>1</td><td>2</td><td>0</td><td>0</td><td>6</td><td>1</td><td class="total-col">10</td></tr>
+        <tr><th>女</th><td>1</td><td>1</td><td>1</td><td>2</td><td>7</td><td>0</td><td class="total-col">12</td></tr>
+        <tr><th rowspan="2" class="r6-col">R6*</th><th class="r6-col">男</th><td class="r6-col">2</td><td class="r6-col">2</td><td class="r6-col">0</td><td class="r6-col">0</td><td class="r6-col">3</td><td class="r6-col">0</td><td class="total-col r6-col">7</td></tr>
+        <tr><th class="r6-col">女</th><td class="r6-col">0</td><td class="r6-col">1</td><td class="r6-col">0</td><td class="r6-col">3</td><td class="r6-col">6</td><td class="r6-col">0</td><td class="total-col r6-col">10</td></tr>
+        <tr><th rowspan="2">R7</th><th>男</th><td>0</td><td>3</td><td>0</td><td>0</td><td>8</td><td>0</td><td class="total-col">11</td></tr>
+        <tr><th>女</th><td>1</td><td>1</td><td>0</td><td>3</td><td>9</td><td>0</td><td class="total-col">14</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="legend-note">*R6は10月15日時点の進学希望状況（暫定）</p>
+  </section>
+
+  <section>
+    <h2>R7（最新・確定）進学先の内訳</h2>
+    <p class="section-desc">令和7年度 3年生 進学状況（令和8年3月27日時点・確定）</p>
+    <div class="chart-wrap" style="max-width:420px;margin:0 auto;"><canvas id="pieChart"></canvas></div>
+  </section>
+
+</main>
+
+<footer>串良商業高等学校　進路指導資料　進学状況　年度別集計（R4〜R7）</footer>
+
+<script>
+const navy = '#0f2a4a';
+const navy2 = '#173c66';
+const gold = '#c9a227';
+const palette = ['#0f2a4a','#3468a3','#7fa8d9','#c9a227','#e8cf7a','#9aa7b3'];
+
+const years = ['R4','R5','R6（暫定）','R7'];
+const categories = ['国公立大','私立大','公立短大','私立短大','専門学校','その他'];
+const dataByCat = {
+  '国公立大': [0,2,2,1],
+  '私立大':   [3,3,3,4],
+  '公立短大': [0,1,0,0],
+  '私立短大': [7,2,3,3],
+  '専門学校': [23,13,9,17],
+  'その他':   [1,1,0,0]
+};
+
+new Chart(document.getElementById('stackChart'), {
+  type: 'bar',
+  data: {
+    labels: years,
+    datasets: categories.map((cat,i)=>({
+      label: cat,
+      data: dataByCat[cat],
+      backgroundColor: palette[i],
+      borderRadius: 3,
+      maxBarThickness: 60
+    }))
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ position:'bottom', labels:{boxWidth:12, font:{size:11}} } },
+    scales:{
+      x:{ stacked:true, grid:{display:false} },
+      y:{ stacked:true, beginAtZero:true, title:{display:true,text:'人数'} }
+    }
+  }
+});
+
+new Chart(document.getElementById('rateChart'), {
+  type: 'line',
+  data: {
+    labels: years,
+    datasets: [{
+      label: '進学率(%)',
+      data: [57.6, 40.7, 50.0, 36.8],
+      borderColor: navy,
+      backgroundColor: 'rgba(201,162,39,0.18)',
+      pointBackgroundColor: gold,
+      pointRadius:5,
+      borderWidth:3,
+      fill:true,
+      tension:.25,
+      segment:{
+        borderDash: ctx => (ctx.p0DataIndex===1) ? [6,4] : undefined
+      }
+    }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false} },
+    scales:{ y:{ beginAtZero:true, max:70, title:{display:true,text:'進学率(%)'} } }
+  }
+});
+
+new Chart(document.getElementById('genderChart'), {
+  type:'bar',
+  data:{
+    labels: years,
+    datasets:[
+      { label:'男', data:[9,10,7,11], backgroundColor: navy2, borderRadius:4, maxBarThickness:40 },
+      { label:'女', data:[25,12,10,14], backgroundColor: gold, borderRadius:4, maxBarThickness:40 }
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ position:'bottom' } },
+    scales:{ y:{ beginAtZero:true, title:{display:true,text:'人数'} } }
+  }
+});
+
+new Chart(document.getElementById('pieChart'), {
+  type:'doughnut',
+  data:{
+    labels:['国公立大(1)','私立大(4)','公立短大(0)','私立短大(3)','専門学校(17)'],
+    datasets:[{
+      data:[1,4,0,3,17],
+      backgroundColor: palette,
+      borderColor:'#fff',
+      borderWidth:2
+    }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ position:'bottom', labels:{boxWidth:12,font:{size:11}} } }
+  }
+});
+</script>
+
+</body>
+</html>
